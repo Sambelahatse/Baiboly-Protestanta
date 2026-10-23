@@ -1,0 +1,191 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Baiboly Protestanta Malagasy{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero {
+        text-align: center;
+        padding: 60px 0 48px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 48px;
+    }
+    .hero-eyebrow {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .16em;
+        color: var(--fg-dim);
+        margin-bottom: 14px;
+    }
+    .hero-title {
+        font-family: var(--font-display);
+        font-size: clamp(36px, 7vw, 64px);
+        font-weight: 600;
+        line-height: 1.05;
+        color: var(--fg);
+        text-wrap: balance;
+        margin: 0 0 12px;
+    }
+    .hero-sub {
+        font-family: var(--font-display);
+        font-size: 20px;
+        font-style: italic;
+        color: var(--gold);
+        margin: 0 0 28px;
+    }
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 36px;
+        flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+        font-family: var(--font-display);
+        font-size: 32px;
+        font-weight: 600;
+        color: var(--gold);
+        display: block;
+        font-variant-numeric: tabular-nums;
+    }
+    .stat-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        color: var(--fg-dim);
+    }
+
+    /* Testament sections */
+    .testament-section { margin-bottom: 48px; }
+    .testament-heading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    .testament-heading h2 {
+        font-family: var(--font-display);
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--fg);
+    }
+    .testament-heading::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+    .testament-badge {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        padding: 3px 8px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--fg-dim);
+    }
+
+    /* Book grid */
+    .book-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+    }
+    .book-card {
+        display: flex;
+        flex-direction: column;
+        padding: 14px 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all .15s;
+        min-width: 0;
+    }
+    .book-card:hover {
+        border-color: var(--gold-dim);
+        background: var(--surface2);
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+    .book-card-num {
+        font-size: 10px;
+        color: var(--fg-dim);
+        margin-bottom: 4px;
+        font-variant-numeric: tabular-nums;
+    }
+    .book-card-name {
+        font-family: var(--font-body);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--fg);
+        line-height: 1.3;
+    }
+    .book-card-meta {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--fg-dim);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+
+    <div class="hero">
+        <div class="hero-eyebrow">Dikan-teny malagasy</div>
+        <h1 class="hero-title">Baiboly Protestanta</h1>
+        <p class="hero-sub">Tenin'Andriamanitra — 1865</p>
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-num">{{ total_books }}</span>
+                <span class="stat-label">Boky</span>
+            </div>
+            <div class="stat">
+                <span class="stat-num">{{ total_chapters }}</span>
+                <span class="stat-label">Toko</span>
+            </div>
+            <div class="stat">
+                <span class="stat-num">31 105</span>
+                <span class="stat-label">Andininy</span>
+            </div>
+        </div>
+    </div>
+
+    {# Testamenta Taloha #}
+    <section class="testament-section">
+        <div class="testament-heading">
+            <h2>Testamenta Taloha</h2>
+            <span class="testament-badge">{{ ot_books|length }} boky</span>
+        </div>
+        <div class="book-grid">
+            {% for book in ot_books %}
+            <a href="{{ path('book_show', { bookNumber: book.bookNumber }) }}" class="book-card">
+                <span class="book-card-num">{{ book.bookNumber }}</span>
+                <span class="book-card-name">{{ book.name }}</span>
+                <span class="book-card-meta">Toko {{ book.chapterCount }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    {# Testamenta Vaovao #}
+    <section class="testament-section">
+        <div class="testament-heading">
+            <h2>Testamenta Vaovao</h2>
+            <span class="testament-badge">{{ nt_books|length }} boky</span>
+        </div>
+        <div class="book-grid">
+            {% for book in nt_books %}
+            <a href="{{ path('book_show', { bookNumber: book.bookNumber }) }}" class="book-card">
+                <span class="book-card-num">{{ book.bookNumber }}</span>
+                <span class="book-card-name">{{ book.name }}</span>
+                <span class="book-card-meta">Toko {{ book.chapterCount }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="mg" data-theme="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}Baiboly Protestanta{% endblock %} — 1865</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap">
+
+    <style>
+        /* ── Tokens ── */
+        :root {
+            --bg:       #0D1520;
+            --surface:  #141D2E;
+            --surface2: #1C2840;
+            --border:   #2A3A54;
+            --gold:     #C9A84C;
+            --gold-dim: #8A6E32;
+            --fg:       #EDE8DC;
+            --fg-muted: #8B9BB4;
+            --fg-dim:   #4A5A74;
+            --accent:   #4A78C4;
+
+            --font-display: "Cormorant Garamond", Georgia, serif;
+            --font-body:    "Lora", Georgia, serif;
+            --font-ui:      "DM Sans", system-ui, sans-serif;
+
+            color-scheme: dark;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root:not([data-theme="dark"]) {
+                --bg:       #F7F3EC;
+                --surface:  #FFFFFF;
+                --surface2: #EDE8DC;
+                --border:   #D5CEBE;
+                --gold:     #9A6F28;
+                --gold-dim: #C9A470;
+                --fg:       #1A1A1A;
+                --fg-muted: #5A5A6A;
+                --fg-dim:   #9A9AAA;
+                --accent:   #2A5AA0;
+                color-scheme: light;
+            }
+        }
+        :root[data-theme="light"] {
+            --bg:       #F7F3EC;
+            --surface:  #FFFFFF;
+            --surface2: #EDE8DC;
+            --border:   #D5CEBE;
+            --gold:     #9A6F28;
+            --gold-dim: #C9A470;
+            --fg:       #1A1A1A;
+            --fg-muted: #5A5A6A;
+            --fg-dim:   #9A9AAA;
+            --accent:   #2A5AA0;
+            color-scheme: light;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { min-height: 100%; margin: 0; }
+        body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: var(--font-ui);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* ── Nav ── */
+        .topbar {
+            position: sticky;
+            top: env(safe-area-inset-top, 0px);
+            z-index: 100;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 54px;
+            padding-left: max(20px, env(safe-area-inset-left, 0px));
+            padding-right: max(20px, env(safe-area-inset-right, 0px));
+        }
+
+        .topbar-brand {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--gold);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .topbar-brand em {
+            font-style: normal;
+            font-size: 12px;
+            color: var(--fg-dim);
+            margin-left: 5px;
+            font-family: var(--font-ui);
+            vertical-align: middle;
+        }
+
+        .topbar-spacer { flex: 1; }
+
+        .topbar-search {
+            display: flex;
+            align-items: center;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 5px 12px;
+            gap: 7px;
+            min-width: 0;
+        }
+        .topbar-search input {
+            background: none;
+            border: none;
+            color: var(--fg);
+            font-family: var(--font-ui);
+            font-size: 13px;
+            outline: none;
+            width: 160px;
+        }
+        .topbar-search input::placeholder { color: var(--fg-dim); }
+        .topbar-search svg { color: var(--fg-dim); flex-shrink: 0; }
+
+        .topbar-theme {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--fg-muted);
+            border-radius: 6px;
+            width: 34px; height: 34px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+            transition: color .15s, border-color .15s;
+        }
+        .topbar-theme:hover { color: var(--gold); border-color: var(--gold-dim); }
+
+        /* ── Page wrapper ── */
+        .page-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px max(20px, env(safe-area-inset-left, 0px));
+            padding-right: max(20px, env(safe-area-inset-right, 0px));
+            padding-block: 40px;
+        }
+
+        /* ── Breadcrumb ── */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--fg-dim);
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .breadcrumb a { color: var(--fg-muted); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--gold); }
+        .breadcrumb-sep { color: var(--fg-dim); }
+
+        /* ── Links ── */
+        a { color: var(--gold); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 7px;
+            font-family: var(--font-ui);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--fg-muted);
+            text-decoration: none;
+            transition: all .15s;
+        }
+        .btn:hover { color: var(--gold); border-color: var(--gold-dim); background: var(--surface2); text-decoration: none; }
+        .btn-gold {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--bg);
+        }
+        .btn-gold:hover { opacity: .88; color: var(--bg); }
+
+        /* ── Flash messages ── */
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .flash-error { background: rgba(224,112,112,.15); border: 1px solid rgba(224,112,112,.4); color: #E07070; }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <a class="topbar-brand" href="{{ path('app_home') }}">
+        Baiboly<em>1865</em>
+    </a>
+    <div class="topbar-spacer"></div>
+
+    {# Recherche rapide #}
+    <form action="{{ path('search_index') }}" method="get" class="topbar-search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" name="q" placeholder="Karohy andininy…"
+               value="{{ app.request.query.get('q', '') }}"
+               autocomplete="off">
+    </form>
+
+    <button class="topbar-theme" id="theme-toggle" onclick="toggleTheme()" title="Vova ny loko">☀</button>
+</header>
+
+<main>
+    {% for message in app.flashes('error') %}
+        <div class="page-wrapper" style="padding-bottom:0">
+            <div class="flash flash-error">{{ message }}</div>
+        </div>
+    {% endfor %}
+
+    {% block body %}{% endblock %}
+</main>
+
+<script>
+    // Thème persisté
+    const root = document.documentElement;
+    const stored = (() => { try { return localStorage.getItem('baiboly_theme'); } catch(e) { return null; } })();
+    if (stored) root.setAttribute('data-theme', stored);
+
+    function toggleTheme() {
+        const cur = root.getAttribute('data-theme');
+        const next = (cur === 'light') ? 'dark' : 'light';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('baiboly_theme', next); } catch(e) {}
+        document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀' : '🌙';
+    }
+
+    // Init icône
+    const t = root.getAttribute('data-theme');
+    if (t) document.getElementById('theme-toggle').textContent = t === 'dark' ? '☀' : '🌙';
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
