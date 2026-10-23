@@ -1,243 +1,144 @@
 import React from 'react';
-import { BOOKS_META } from '../data/booksMeta';
-import { FontSizeLevel } from '../types/bible';
-import { Search, Sun, Moon, PanelLeft, ChevronLeft, ChevronRight, BookOpen, Library } from 'lucide-react';
+import { ActiveTab, AppTheme, AppFontFamily, FontSizeLevel } from '../types/bible';
+import {
+  Search,
+  BookOpen,
+  Library,
+  Bookmark,
+  Calendar,
+  Sparkles,
+  Type,
+} from 'lucide-react';
 
 interface TopbarProps {
-  currentBook: number;
-  currentChapter: number;
-  totalChapters: number;
+  activeView: ActiveTab;
   fontSize: FontSizeLevel;
-  theme: 'dark' | 'light';
-  sidebarOpen: boolean;
-  activeView: 'reader' | 'books' | 'search';
-  onSelectBook: (bookNumber: number) => void;
-  onSelectChapter: (chapterNumber: number) => void;
-  onPrevChapter: () => void;
-  onNextChapter: () => void;
-  canPrev: boolean;
-  canNext: boolean;
+  theme: AppTheme;
+  fontFamily: AppFontFamily;
   onToggleSearch: () => void;
-  onCycleFontSize: () => void;
-  onToggleTheme: () => void;
-  onToggleSidebar: () => void;
-  onSetView: (view: 'reader' | 'books' | 'search') => void;
+  onToggleQuickJump: () => void;
+  onToggleDisplayPopover: () => void;
+  onSetView: (view: ActiveTab) => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
-  currentBook,
-  currentChapter,
-  totalChapters,
-  fontSize,
-  theme,
-  sidebarOpen,
   activeView,
-  onSelectBook,
-  onSelectChapter,
-  onPrevChapter,
-  onNextChapter,
-  canPrev,
-  canNext,
   onToggleSearch,
-  onCycleFontSize,
-  onToggleTheme,
-  onToggleSidebar,
+  onToggleQuickJump,
+  onToggleDisplayPopover,
   onSetView,
 }) => {
-  const fontLabels: Record<FontSizeLevel, string> = {
-    15: 'A⁻',
-    17: 'A',
-    19: 'A⁺',
-    22: 'A⁺⁺',
-  };
+  const navTabs: Array<{ id: ActiveTab; label: string; icon: React.ReactNode }> = [
+    { id: 'reader', label: 'Hamaky', icon: <BookOpen size={14} /> },
+    { id: 'books', label: 'Boky', icon: <Library size={14} /> },
+    { id: 'plan', label: 'Perikopa', icon: <Calendar size={14} /> },
+    { id: 'study', label: 'Fianarana', icon: <Bookmark size={14} /> },
+  ];
 
   return (
-    <header className="h-[54px] sticky top-0 z-30 flex items-center justify-between px-3 md:px-5 border-b select-none flex-shrink-0"
+    <header
+      className="h-[56px] sticky top-0 z-30 flex items-center justify-between px-3 sm:px-6 border-b select-none flex-shrink-0 transition-colors"
       style={{
         backgroundColor: 'var(--surface)',
         borderColor: 'var(--border)',
         color: 'var(--fg)',
       }}
     >
-      {/* Brand & Sidebar toggle */}
+      {/* Brand & Identity */}
       <div className="flex items-center gap-3">
         <button
-          onClick={onToggleSidebar}
-          className="p-1.5 rounded-md hover:opacity-80 transition-colors"
-          style={{
-            color: sidebarOpen ? 'var(--gold)' : 'var(--fg-muted)',
-            backgroundColor: sidebarOpen ? 'rgba(201,168,76,0.1)' : 'transparent',
-          }}
-          title={sidebarOpen ? 'Hakatona ny lisitra' : 'Hovohana ny lisitra'}
+          onClick={() => onSetView('reader')}
+          className="flex items-center gap-2 group text-left"
         >
-          <PanelLeft size={18} />
-        </button>
-
-        <button
-          onClick={() => onSetView('books')}
-          className="flex items-baseline gap-1.5 font-semibold text-left transition-opacity hover:opacity-90"
-        >
-          <span
-            className="text-xl tracking-tight"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--gold)' }}
-          >
-            Baiboly
-          </span>
-          <span
-            className="text-xs font-normal tracking-wide hidden sm:inline"
-            style={{ color: 'var(--fg-dim)', fontFamily: 'var(--font-ui)' }}
-          >
-            1865
-          </span>
-        </button>
-
-        {/* View Mode Pills */}
-        <div className="hidden lg:flex items-center gap-1 ml-2 pl-3 border-l" style={{ borderColor: 'var(--border)' }}>
-          <button
-            onClick={() => onSetView('reader')}
-            className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 ${
-              activeView === 'reader' ? 'shadow-xs' : ''
-            }`}
+          {/* Bible.com icon mark */}
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shadow-xs"
             style={{
-              backgroundColor: activeView === 'reader' ? 'var(--surface2)' : 'transparent',
-              color: activeView === 'reader' ? 'var(--gold)' : 'var(--fg-muted)',
+              backgroundColor: 'var(--primary)',
+              color: '#FFFFFF',
             }}
           >
-            <BookOpen size={13} />
-            Hamaky
-          </button>
-          <button
-            onClick={() => onSetView('books')}
-            className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 ${
-              activeView === 'books' ? 'shadow-xs' : ''
-            }`}
-            style={{
-              backgroundColor: activeView === 'books' ? 'var(--surface2)' : 'transparent',
-              color: activeView === 'books' ? 'var(--gold)' : 'var(--fg-muted)',
-            }}
-          >
-            <Library size={13} />
-            Boky
-          </button>
-        </div>
-      </div>
-
-      {/* Chapter & Book Quick Navigator */}
-      <div className="flex items-center gap-1 sm:gap-2">
-        <button
-          onClick={onPrevChapter}
-          disabled={!canPrev}
-          title="Toko teo aloha (Left arrow)"
-          className="w-8 h-8 rounded-md flex items-center justify-center border transition-opacity disabled:opacity-30 disabled:pointer-events-none hover:border-[var(--gold)]"
-          style={{
-            backgroundColor: 'var(--surface2)',
-            borderColor: 'var(--border)',
-            color: 'var(--fg-muted)',
-          }}
-        >
-          <ChevronLeft size={16} />
-        </button>
-
-        <select
-          value={currentBook}
-          onChange={(e) => onSelectBook(Number(e.target.value))}
-          className="text-xs sm:text-sm font-medium py-1.5 px-2 rounded-md border outline-none cursor-pointer max-w-[110px] sm:max-w-[170px]"
-          style={{
-            backgroundColor: 'var(--surface2)',
-            borderColor: 'var(--border)',
-            color: 'var(--fg)',
-          }}
-        >
-          <optgroup label="Testamenta Taloha">
-            {BOOKS_META.slice(0, 39).map((b) => (
-              <option key={b.book_number} value={b.book_number}>
-                {b.book_number}. {b.name}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="Testamenta Vaovao">
-            {BOOKS_META.slice(39).map((b) => (
-              <option key={b.book_number} value={b.book_number}>
-                {b.book_number}. {b.name}
-              </option>
-            ))}
-          </optgroup>
-        </select>
-
-        <select
-          value={currentChapter}
-          onChange={(e) => onSelectChapter(Number(e.target.value))}
-          className="text-xs sm:text-sm font-medium py-1.5 px-2 rounded-md border outline-none cursor-pointer w-[68px] sm:w-[76px]"
-          style={{
-            backgroundColor: 'var(--surface2)',
-            borderColor: 'var(--border)',
-            color: 'var(--fg)',
-          }}
-        >
-          {Array.from({ length: totalChapters }, (_, i) => i + 1).map((ch) => (
-            <option key={ch} value={ch}>
-              Toko {ch}
-            </option>
-          ))}
-        </select>
-
-        <button
-          onClick={onNextChapter}
-          disabled={!canNext}
-          title="Toko manaraka (Right arrow)"
-          className="w-8 h-8 rounded-md flex items-center justify-center border transition-opacity disabled:opacity-30 disabled:pointer-events-none hover:border-[var(--gold)]"
-          style={{
-            backgroundColor: 'var(--surface2)',
-            borderColor: 'var(--border)',
-            color: 'var(--fg-muted)',
-          }}
-        >
-          <ChevronRight size={16} />
+            B
+          </div>
+          <div>
+            <span
+              className="text-lg sm:text-xl font-bold tracking-tight block leading-tight"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--fg)' }}
+            >
+              Baiboly
+            </span>
+          </div>
         </button>
       </div>
 
-      {/* Action buttons: Search, Font size, Theme */}
-      <div className="flex items-center gap-1 sm:gap-1.5">
-        <button
-          onClick={onToggleSearch}
-          title="Fikarohana (Ctrl+K)"
-          className="h-8 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5 border transition-colors hover:border-[var(--gold)]"
-          style={{
-            backgroundColor: 'var(--surface2)',
-            borderColor: 'var(--border)',
-            color: 'var(--fg-muted)',
-          }}
-        >
-          <Search size={15} />
-          <span className="hidden md:inline text-xs" style={{ color: 'var(--fg-dim)' }}>
-            Karohy (Ctrl+K)
-          </span>
-        </button>
+      {/* Center Navigation Links (Bible.com clean style) */}
+      <nav className="flex items-center gap-1 sm:gap-2">
+        {navTabs.map((tab) => {
+          const isActive = activeView === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onSetView(tab.id)}
+              className={`px-2.5 sm:px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                isActive
+                  ? 'font-semibold shadow-xs'
+                  : 'hover:bg-[var(--surface2)] opacity-75 hover:opacity-100'
+              }`}
+              style={{
+                backgroundColor: isActive ? 'var(--surface2)' : 'transparent',
+                color: isActive ? 'var(--gold)' : 'var(--fg)',
+              }}
+            >
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
+      {/* Right Controls: Quick Jump, Search, Display Settings (Aa) */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <button
-          onClick={onCycleFontSize}
-          title="Habean'ny soratra (Font size)"
-          className="w-8 h-8 rounded-md flex items-center justify-center border font-serif text-sm font-semibold transition-colors hover:border-[var(--gold)]"
+          onClick={onToggleQuickJump}
+          title="Fitetezana haingana (oh: Jao 3:16)"
+          className="h-8 px-2 sm:px-2.5 rounded-lg flex items-center gap-1.5 border transition-all hover:border-[var(--gold)]"
           style={{
             backgroundColor: 'var(--surface2)',
             borderColor: 'var(--border)',
             color: 'var(--gold)',
           }}
         >
-          {fontLabels[fontSize]}
+          <Sparkles size={13} />
+          <span className="text-xs hidden md:inline font-medium">Tsambikina</span>
         </button>
 
         <button
-          onClick={onToggleTheme}
-          title={theme === 'dark' ? 'Hovaina ho mazava' : 'Hovaina ho maizina'}
-          className="w-8 h-8 rounded-md flex items-center justify-center border transition-colors hover:border-[var(--gold)]"
+          onClick={onToggleSearch}
+          title="Fikarohana (Ctrl+K)"
+          className="h-8 px-2 sm:px-2.5 rounded-lg flex items-center gap-1.5 border transition-all hover:border-[var(--gold)]"
           style={{
             backgroundColor: 'var(--surface2)',
             borderColor: 'var(--border)',
             color: 'var(--fg-muted)',
           }}
         >
-          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          <Search size={14} />
+          <span className="text-xs hidden lg:inline">Karohy...</span>
+        </button>
+
+        {/* Display Settings Button (Bible.com Aa button) */}
+        <button
+          onClick={onToggleDisplayPopover}
+          title="Fisehoana sy Habean'ny soratra (Display settings)"
+          className="h-8 px-2.5 rounded-lg flex items-center gap-1 border transition-all hover:border-[var(--gold)]"
+          style={{
+            backgroundColor: 'var(--surface2)',
+            borderColor: 'var(--border)',
+            color: 'var(--fg)',
+          }}
+        >
+          <Type size={14} style={{ color: 'var(--gold)' }} />
+          <span className="text-xs font-semibold">Aa</span>
         </button>
       </div>
     </header>

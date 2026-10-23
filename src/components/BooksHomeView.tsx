@@ -29,76 +29,78 @@ export const BooksHomeView: React.FC<BooksHomeViewProps> = ({
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-[1080px] mx-auto px-4 sm:px-8 py-8 sm:py-12">
-        {/* Hero Section */}
-        <div className="text-center py-8 sm:py-12 border-b mb-10 select-none" style={{ borderColor: 'var(--border)' }}>
+      <div className="max-w-[1040px] mx-auto px-5 sm:px-10 py-10 sm:py-14">
+        {/* Hero Section (Bible.com clean style) */}
+        <div className="text-center py-6 sm:py-10 mb-8 select-none">
           <div
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] mb-3"
-            style={{ color: 'var(--fg-dim)' }}
+            className="text-xs uppercase font-semibold tracking-[0.2em] mb-2"
+            style={{ color: 'var(--primary)' }}
           >
-            Dikan-teny malagasy
+            Baiboly Protestanta Malagasy (1865)
           </div>
           <h1
-            className="text-4xl sm:text-6xl font-semibold tracking-tight mb-3 leading-none"
+            className="text-4xl sm:text-6xl font-bold tracking-tight mb-3 leading-none"
             style={{
               fontFamily: 'var(--font-display)',
               color: 'var(--fg)',
             }}
           >
-            Baiboly Protestanta
+            Ny Tenin’Andriamanitra
           </h1>
           <p
-            className="text-xl sm:text-2xl italic font-normal mb-8"
+            className="text-lg sm:text-xl italic font-normal mb-8 max-w-xl mx-auto"
             style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: 'var(--font-body-serif)',
               color: 'var(--gold)',
             }}
           >
-            Tenin’Andriamanitra — 1865
+            « Fanilon’ ny tongotro sy fanazavana ny lalako ny teninao. »
           </p>
 
-          {/* Stats Bar */}
-          <div className="flex items-center justify-center gap-8 sm:gap-14 flex-wrap">
+          {/* Clean Unboxed Stats (No AI pill boxes) */}
+          <div className="flex items-center justify-center gap-6 sm:gap-12 text-xs text-slate-500 flex-wrap">
             <div className="text-center">
               <span
-                className="text-3xl sm:text-4xl font-semibold tabular-nums leading-none block"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--gold)' }}
+                className="text-2xl sm:text-3xl font-bold block tabular-nums leading-none"
+                style={{ color: 'var(--fg)' }}
               >
                 {TOTAL_BOOKS}
               </span>
-              <span className="text-[11px] uppercase tracking-wider font-medium" style={{ color: 'var(--fg-dim)' }}>
+              <span className="text-[11px] uppercase tracking-wider" style={{ color: 'var(--fg-dim)' }}>
                 Boky
               </span>
             </div>
+            <span aria-hidden="true" style={{ color: 'var(--border)' }}>·</span>
             <div className="text-center">
               <span
-                className="text-3xl sm:text-4xl font-semibold tabular-nums leading-none block"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--gold)' }}
+                className="text-2xl sm:text-3xl font-bold block tabular-nums leading-none"
+                style={{ color: 'var(--fg)' }}
               >
                 {TOTAL_CHAPTERS.toLocaleString()}
               </span>
-              <span className="text-[11px] uppercase tracking-wider font-medium" style={{ color: 'var(--fg-dim)' }}>
+              <span className="text-[11px] uppercase tracking-wider" style={{ color: 'var(--fg-dim)' }}>
                 Toko
               </span>
             </div>
+            <span aria-hidden="true" style={{ color: 'var(--border)' }}>·</span>
             <div className="text-center">
               <span
-                className="text-3xl sm:text-4xl font-semibold tabular-nums leading-none block"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--gold)' }}
+                className="text-2xl sm:text-3xl font-bold block tabular-nums leading-none"
+                style={{ color: 'var(--fg)' }}
               >
                 {TOTAL_VERSES.toLocaleString()}
               </span>
-              <span className="text-[11px] uppercase tracking-wider font-medium" style={{ color: 'var(--fg-dim)' }}>
+              <span className="text-[11px] uppercase tracking-wider" style={{ color: 'var(--fg-dim)' }}>
                 Andininy
               </span>
             </div>
           </div>
         </div>
 
-        {/* Filter Input */}
-        <div className="mb-8 max-w-md mx-auto">
+        {/* Search / Filter Input */}
+        <div className="mb-10 max-w-md mx-auto">
           <div
-            className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg border text-sm"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-sm shadow-xs"
             style={{
               backgroundColor: 'var(--surface)',
               borderColor: 'var(--border)',
@@ -128,31 +130,25 @@ export const BooksHomeView: React.FC<BooksHomeViewProps> = ({
         {/* Testamenta Taloha (Old Testament) */}
         {filteredOT.length > 0 && (
           <section className="mb-12">
-            <div className="flex items-center gap-3 mb-5 select-none">
-              <h2
-                className="text-2xl font-semibold leading-none"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--fg)' }}
-              >
-                Testamenta Taloha
-              </h2>
-              <span
-                className="text-[11px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-sm border"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                  color: 'var(--fg-dim)',
-                }}
-              >
-                {filteredOT.length} boky
-              </span>
-              <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--border)' }} />
+            <div className="flex items-baseline justify-between mb-4 pb-2 border-b select-none" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-baseline gap-2">
+                <h2
+                  className="text-2xl font-bold"
+                  style={{ fontFamily: 'var(--font-display)', color: 'var(--fg)' }}
+                >
+                  Testamenta Taloha
+                </h2>
+                <span className="text-xs" style={{ color: 'var(--fg-dim)' }}>
+                  ({filteredOT.length} boky)
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
               {filteredOT.map((book) => (
                 <div
                   key={book.book_number}
-                  className="group relative p-3.5 rounded-lg border transition-all text-left flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+                  className="group relative p-3.5 rounded-xl border transition-all text-left flex flex-col justify-between hover:border-[var(--gold)] cursor-pointer"
                   style={{
                     backgroundColor: 'var(--surface)',
                     borderColor: 'var(--border)',
@@ -161,13 +157,13 @@ export const BooksHomeView: React.FC<BooksHomeViewProps> = ({
                 >
                   <div>
                     <span
-                      className="text-[10px] font-mono tabular-nums block mb-1"
+                      className="text-[10px] font-mono tabular-nums block mb-1 opacity-60"
                       style={{ color: 'var(--fg-dim)' }}
                     >
                       {book.book_number}
                     </span>
                     <h3
-                      className="font-semibold text-sm sm:text-base leading-snug group-hover:text-[var(--gold)] transition-colors"
+                      className="font-semibold text-sm leading-snug group-hover:text-[var(--gold)] transition-colors"
                       style={{ color: 'var(--fg)' }}
                     >
                       {book.name}
@@ -196,31 +192,25 @@ export const BooksHomeView: React.FC<BooksHomeViewProps> = ({
         {/* Testamenta Vaovao (New Testament) */}
         {filteredNT.length > 0 && (
           <section className="mb-12">
-            <div className="flex items-center gap-3 mb-5 select-none">
-              <h2
-                className="text-2xl font-semibold leading-none"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--fg)' }}
-              >
-                Testamenta Vaovao
-              </h2>
-              <span
-                className="text-[11px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-sm border"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                  color: 'var(--fg-dim)',
-                }}
-              >
-                {filteredNT.length} boky
-              </span>
-              <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--border)' }} />
+            <div className="flex items-baseline justify-between mb-4 pb-2 border-b select-none" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-baseline gap-2">
+                <h2
+                  className="text-2xl font-bold"
+                  style={{ fontFamily: 'var(--font-display)', color: 'var(--fg)' }}
+                >
+                  Testamenta Vaovao
+                </h2>
+                <span className="text-xs" style={{ color: 'var(--fg-dim)' }}>
+                  ({filteredNT.length} boky)
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
               {filteredNT.map((book) => (
                 <div
                   key={book.book_number}
-                  className="group relative p-3.5 rounded-lg border transition-all text-left flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+                  className="group relative p-3.5 rounded-xl border transition-all text-left flex flex-col justify-between hover:border-[var(--gold)] cursor-pointer"
                   style={{
                     backgroundColor: 'var(--surface)',
                     borderColor: 'var(--border)',
@@ -229,13 +219,13 @@ export const BooksHomeView: React.FC<BooksHomeViewProps> = ({
                 >
                   <div>
                     <span
-                      className="text-[10px] font-mono tabular-nums block mb-1"
+                      className="text-[10px] font-mono tabular-nums block mb-1 opacity-60"
                       style={{ color: 'var(--fg-dim)' }}
                     >
                       {book.book_number}
                     </span>
                     <h3
-                      className="font-semibold text-sm sm:text-base leading-snug group-hover:text-[var(--gold)] transition-colors"
+                      className="font-semibold text-sm leading-snug group-hover:text-[var(--gold)] transition-colors"
                       style={{ color: 'var(--fg)' }}
                     >
                       {book.name}

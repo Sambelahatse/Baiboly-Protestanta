@@ -1,13 +1,10 @@
 import { BOOKS_META, getBookByNumber } from '../data/booksMeta';
-import { CompactBook, ChapterData, SearchHit, AppState, FontSizeLevel } from '../types/bible';
+import { CompactBook, ChapterData, SearchHit, AppState, FontSizeLevel, HighlightItem, ActiveTab } from '../types/bible';
 
-const STORAGE_KEY = 'baiboly_react_state';
+const STORAGE_KEY = 'baiboly_bpm_state_v2';
 
-// In-memory cache of full Bible data
 let fullBibleData: CompactBook[] | null = null;
 let fullBiblePromise: Promise<CompactBook[]> | null = null;
-
-// In-memory cache of individually loaded book files
 const singleBookCache = new Map<number, any>();
 
 /**
@@ -26,7 +23,6 @@ export async function loadFullBible(): Promise<CompactBook[]> {
       return data;
     } catch (err) {
       console.error('Failed to load /data/baiboly.json:', err);
-      // Fallback: try root /baiboly.json
       try {
         const res2 = await fetch('baiboly.json');
         const data2: CompactBook[] = await res2.json();
@@ -70,7 +66,6 @@ export async function getChapter(bookNumber: number, chapterNumber: number): Pro
   const meta = getBookByNumber(bookNumber);
   if (!meta) throw new Error(`Book ${bookNumber} not found`);
 
-  // If full Bible is already in memory, use it
   if (fullBibleData) {
     const bookIndex = bookNumber - 1;
     const compactBook = fullBibleData[bookIndex];
@@ -86,7 +81,6 @@ export async function getChapter(bookNumber: number, chapterNumber: number): Pro
     }
   }
 
-  // Try loading single book JSON
   try {
     const bookJson = await loadSingleBook(bookNumber);
     const chapterObj = bookJson.chapters?.find((c: any) => c.chapter === chapterNumber);
@@ -106,7 +100,6 @@ export async function getChapter(bookNumber: number, chapterNumber: number): Pro
     console.warn(`Single book load failed for ${bookNumber}, falling back to full bible...`, singleErr);
   }
 
-  // Fallback to loading full Bible
   const full = await loadFullBible();
   const compactBook = full[bookNumber - 1];
   const rawVerses = compactBook.c[chapterNumber - 1] || [];
@@ -122,7 +115,7 @@ export async function getChapter(bookNumber: number, chapterNumber: number): Pro
 /**
  * Searches the Bible for matching verses
  */
-export async function searchBible(query: string, limit = 80): Promise<SearchHit[]> {
+export async function searchBible(query: string, limit = 100): Promise<SearchHit[]> {
   const trimmed = query.trim();
   if (trimmed.length < 2) return [];
 
@@ -169,31 +162,58 @@ export function loadSavedState(): AppState {
     bookNumber: 1,
     chapterNumber: 1,
     fontSize: 17,
-    theme: 'dark',
+    fontFamily: 'serif',
+    theme: 'light',
     sidebarOpen: true,
     activeView: 'reader',
     highlights: {},
+    notes: {},
     bookmarks: [],
+    history: [],
   };
 
   try {
-    // Check legacy state from original index.html first if present
-    const legacy = localStorage.getItem('baiboly_state');
-    if (legacy) {
-      const parsed = JSON.parse(legacy);
-      if (typeof parsed.b === 'number') defaultState.bookNumber = parsed.b + 1;
-      if (typeof parsed.c === 'number') defaultState.chapterNumber = parsed.c + 1;
-      if (parsed.theme === 'light' || parsed.theme === 'dark') defaultState.theme = parsed.theme;
-      if (typeof parsed.sidebar === 'boolean') defaultState.sidebarOpen = parsed.sidebar;
-    }
-
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('baiboly_bpm_state_v2');
     if (!saved) return defaultState;
 
     const parsed = JSON.parse(saved);
+
+    let highlightsObj: Record<string, HighlightItem> = {};
+    if (parsed.highlights) {
+      if (typeof Object.values(parsed.highlights)[0] === 'boolean') {
+        Object.keys(parsed.highlights).forEach((key) => {
+          highlightsObj[key] = {
+            verseKey: key,
+            bookNumber: 1,
+            bookName: '',
+            chapterNumber: 1,
+            verseNumber: 1,
+            text: '',
+            color: 'gold',
+            timestamp: Date.now(),
+          };
+        });
+      } else {
+        highlightsObj = parsed.highlights;
+      }
+    }
+
+    const validTabs: ActiveTab[] = ['reader', 'books', 'search', 'study', 'plan'];
+    const activeView: ActiveTab = validTabs.includes(parsed.activeView) ? parsed.activeView : 'reader';
+    const validThemes = ['light', 'sepia', 'dark'];
+    const theme = validThemes.includes(parsed.theme) ? parsed.theme : 'light';
+    const fontFamily = parsed.fontFamily === 'sans' ? 'sans' : 'serif';
+
     return {
       ...defaultState,
       ...parsed,
+      theme,
+      fontFamily,
+      activeView,
+      highlights: highlightsObj,
+      notes: parsed.notes || {},
+      bookmarks: Array.isArray(parsed.bookmarks) ? parsed.bookmarks : [],
+      history: Array.isArray(parsed.history) ? parsed.history : [],
       fontSize: [15, 17, 19, 22].includes(parsed.fontSize) ? (parsed.fontSize as FontSizeLevel) : 17,
     };
   } catch (e) {
@@ -205,7 +225,6 @@ export function loadSavedState(): AppState {
 export function saveAppState(state: AppState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    // Also sync theme attribute on root
     document.documentElement.setAttribute('data-theme', state.theme);
   } catch (e) {
     console.warn('Failed to save app state:', e);

@@ -1,39 +1,93 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChapterData, FontSizeLevel } from '../types/bible';
-import { BOOKS_META, isOldTestament } from '../data/booksMeta';
-import { ChevronLeft, ChevronRight, Copy, Check, Bookmark, BookmarkCheck } from 'lucide-react';
+import {
+  ChapterData,
+  FontSizeLevel,
+  AppFontFamily,
+  HighlightItem,
+  UserNote,
+  HighlightColor,
+} from '../types/bible';
+import { isOldTestament } from '../data/booksMeta';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Headphones,
+  FileText,
+} from 'lucide-react';
+import { FloatingVerseDock } from './FloatingVerseDock';
+import { VerseShareModal } from './VerseShareModal';
+
+interface SelectedVerseInfo {
+  verseNumber: number;
+  text: string;
+}
 
 interface ReaderViewProps {
   chapterData: ChapterData | null;
   isLoading: boolean;
   fontSize: FontSizeLevel;
-  highlightedVerses: Record<string, boolean>;
+  fontFamily: AppFontFamily;
+  highlights: Record<string, HighlightItem>;
+  notes: Record<string, UserNote>;
+  isBookmarked: boolean;
   targetVerse?: number;
-  onToggleHighlight: (verseKey: string) => void;
-  onSelectChapter: (chapterNumber: number) => void;
+  onOpenChapterPicker: () => void;
+  onSetHighlight: (
+    verseKey: string,
+    color: HighlightColor | null,
+    text: string,
+    bookNum: number,
+    bookName: string,
+    chapNum: number,
+    verseNum: number
+  ) => void;
+  onSaveNote: (
+    verseKey: string,
+    content: string,
+    text: string,
+    bookNum: number,
+    bookName: string,
+    chapNum: number,
+    verseNum: number
+  ) => void;
+  onDeleteNote: (noteId: string) => void;
+  onToggleBookmark: () => void;
   onPrevChapter: () => void;
   onNextChapter: () => void;
-  onNavigateHome: () => void;
+  canPrev: boolean;
+  canNext: boolean;
+  onStartAudio: (verseIndex?: number) => void;
 }
 
 export const ReaderView: React.FC<ReaderViewProps> = ({
   chapterData,
   isLoading,
   fontSize,
-  highlightedVerses,
+  fontFamily,
+  highlights,
+  notes,
+  isBookmarked,
   targetVerse,
-  onToggleHighlight,
-  onSelectChapter,
+  onOpenChapterPicker,
+  onSetHighlight,
+  onSaveNote,
+  onToggleBookmark,
   onPrevChapter,
   onNextChapter,
-  onNavigateHome,
+  canPrev,
+  canNext,
+  onStartAudio,
 }) => {
-  const [copiedVerse, setCopiedVerse] = useState<number | null>(null);
+  const [selectedVerses, setSelectedVerses] = useState<SelectedVerseInfo[]>([]);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [noteContent, setNoteContent] = useState('');
+
   const readerScrollRef = useRef<HTMLDivElement>(null);
-  const activeChapterRef = useRef<HTMLButtonElement>(null);
 
   // Scroll to target verse or top on chapter change
   useEffect(() => {
+    setSelectedVerses([]);
     if (targetVerse && !isLoading) {
       setTimeout(() => {
         const el = document.getElementById(`verse-${targetVerse}`);
@@ -46,13 +100,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     }
   }, [chapterData?.bookNumber, chapterData?.chapterNumber, targetVerse, isLoading]);
 
-  // Scroll chapter sidebar to current chapter
-  useEffect(() => {
-    if (activeChapterRef.current) {
-      activeChapterRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [chapterData?.chapterNumber]);
-
   if (isLoading || !chapterData) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 select-none">
@@ -64,245 +111,427 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     );
   }
 
-  const { bookNumber, bookName, chapterNumber, totalChapters, verses } = chapterData;
+  const { bookNumber, bookName, chapterNumber, verses } = chapterData;
   const isOT = isOldTestament(bookNumber);
   const testamentName = isOT ? 'Testamenta Taloha' : 'Testamenta Vaovao';
 
-  // Compute previous and next chapter labels
-  let prevLabel: string | null = null;
-  if (chapterNumber > 1) {
-    prevLabel = `${bookName} ${chapterNumber - 1}`;
-  } else if (bookNumber > 1) {
-    const prevBook = BOOKS_META[bookNumber - 2];
-    prevLabel = `${prevBook.name} ${prevBook.chapters}`;
-  }
-
-  let nextLabel: string | null = null;
-  if (chapterNumber < totalChapters) {
-    nextLabel = `${bookName} ${chapterNumber + 1}`;
-  } else if (bookNumber < BOOKS_META.length) {
-    const nextBook = BOOKS_META[bookNumber];
-    nextLabel = `${nextBook.name} 1`;
-  }
-
-  const handleCopyVerse = (e: React.MouseEvent, verseNum: number, text: string) => {
-    e.stopPropagation();
-    const formatted = `${bookName} ${chapterNumber}:${verseNum} - « ${text} »`;
-    navigator.clipboard.writeText(formatted);
-    setCopiedVerse(verseNum);
-    setTimeout(() => setCopiedVerse(null), 2000);
+  // Toggle verse selection (Bible.com multi-select interaction)
+  const handleToggleVerseSelection = (verseNumber: number, text: string) => {
+    setSelectedVerses((prev) => {
+      const exists = prev.some((v) => v.verseNumber === verseNumber);
+      if (exists) {
+        return prev.filter((v) => v.verseNumber !== verseNumber);
+      } else {
+        const updated = [...prev, { verseNumber, text }];
+        return updated.sort((a, b) => a.verseNumber - b.verseNumber);
+      }
+    });
   };
 
+  const handleClearSelection = () => {
+    setSelectedVerses([]);
+  };
+
+  // Highlighting selected verses
+  const handleApplyHighlight = (color: HighlightColor | null) => {
+    selectedVerses.forEach((v) => {
+      const key = `b${bookNumber}_c${chapterNumber}_v${v.verseNumber}`;
+      onSetHighlight(key, color, v.text, bookNumber, bookName, chapterNumber, v.verseNumber);
+    });
+    handleClearSelection();
+  };
+
+  // Copy selected verses
+  const handleCopySelected = () => {
+    if (selectedVerses.length === 0) return;
+    const firstV = selectedVerses[0].verseNumber;
+    const lastV = selectedVerses[selectedVerses.length - 1].verseNumber;
+    const ref =
+      selectedVerses.length === 1
+        ? `${bookName} ${chapterNumber}:${firstV}`
+        : `${bookName} ${chapterNumber}:${firstV}–${lastV}`;
+
+    const versesText = selectedVerses.map((v) => `${v.verseNumber}. ${v.text}`).join('\n');
+    const full = `« ${versesText} »\n\n— ${ref} (Baiboly Protestanta 1865)`;
+    navigator.clipboard.writeText(full);
+    handleClearSelection();
+  };
+
+  // Share selected verses
+  const handleShareSelected = () => {
+    if (selectedVerses.length === 0) return;
+    const firstV = selectedVerses[0].verseNumber;
+    const lastV = selectedVerses[selectedVerses.length - 1].verseNumber;
+    const ref =
+      selectedVerses.length === 1
+        ? `${bookName} ${chapterNumber}:${firstV}`
+        : `${bookName} ${chapterNumber}:${firstV}–${lastV}`;
+
+    const versesText = selectedVerses.map((v) => `${v.verseNumber}. ${v.text}`).join('\n');
+    const full = `« ${versesText} »\n\n— ${ref} (Baiboly Protestanta 1865)`;
+
+    if (navigator.share) {
+      navigator.share({ title: ref, text: full }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(full);
+    }
+  };
+
+  // Open note editor
+  const handleOpenNoteModal = () => {
+    if (selectedVerses.length === 0) return;
+    const firstKey = `b${bookNumber}_c${chapterNumber}_v${selectedVerses[0].verseNumber}`;
+    setNoteContent(notes[firstKey]?.content || '');
+    setNoteModalOpen(true);
+  };
+
+  const handleSaveNoteSubmit = () => {
+    if (selectedVerses.length > 0 && noteContent.trim()) {
+      selectedVerses.forEach((v) => {
+        const key = `b${bookNumber}_c${chapterNumber}_v${v.verseNumber}`;
+        onSaveNote(key, noteContent.trim(), v.text, bookNumber, bookName, chapterNumber, v.verseNumber);
+      });
+      setNoteModalOpen(false);
+      handleClearSelection();
+    }
+  };
+
+  const colorStyles: Record<HighlightColor, { bg: string; border: string }> = {
+    gold: { bg: 'rgba(212, 175, 55, 0.22)', border: '#D4AF37' },
+    emerald: { bg: 'rgba(16, 185, 129, 0.22)', border: '#10B981' },
+    blue: { bg: 'rgba(59, 130, 246, 0.22)', border: '#3B82F6' },
+    rose: { bg: 'rgba(244, 63, 94, 0.22)', border: '#F43F5E' },
+    purple: { bg: 'rgba(168, 85, 247, 0.22)', border: '#A855F7' },
+  };
+
+  const firstSelectedKey =
+    selectedVerses.length > 0
+      ? `b${bookNumber}_c${chapterNumber}_v${selectedVerses[0].verseNumber}`
+      : undefined;
+  const currentHighlight = firstSelectedKey ? highlights[firstSelectedKey] : undefined;
+
   return (
-    <div className="flex-1 flex overflow-hidden">
-      {/* Sticky Chapter Quick-Bar (Desktop) */}
-      {totalChapters > 1 && (
-        <aside
-          className="hidden lg:flex flex-col w-14 border-r py-4 px-1.5 flex-shrink-0 select-none overflow-y-auto"
-          style={{
-            backgroundColor: 'var(--surface)',
-            borderColor: 'var(--border)',
-          }}
-        >
-          <div className="text-[10px] uppercase font-semibold text-center mb-2 tracking-wider" style={{ color: 'var(--fg-dim)' }}>
-            Toko
-          </div>
-          <div className="flex flex-col gap-1">
-            {Array.from({ length: totalChapters }, (_, i) => i + 1).map((ch) => {
-              const isCurrent = ch === chapterNumber;
-              return (
-                <button
-                  key={ch}
-                  ref={isCurrent ? activeChapterRef : null}
-                  onClick={() => onSelectChapter(ch)}
-                  className={`h-8 rounded-md text-xs font-mono font-medium transition-all flex items-center justify-center ${
-                    isCurrent
-                      ? 'shadow-xs font-bold'
-                      : 'hover:bg-[var(--surface2)] opacity-70 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: isCurrent ? 'var(--gold)' : 'transparent',
-                    color: isCurrent ? 'var(--bg)' : 'var(--fg-muted)',
-                  }}
-                >
-                  {ch}
-                </button>
-              );
-            })}
-          </div>
-        </aside>
-      )}
-
-      {/* Main Reader Scroll Container */}
-      <main ref={readerScrollRef} className="flex-1 overflow-y-auto min-w-0 scroll-smooth">
-        <div className="max-w-[760px] mx-auto px-4 sm:px-8 py-8 sm:py-12">
-          {/* Breadcrumb Navigation */}
-          <nav className="flex items-center gap-1.5 text-xs mb-8 select-none flex-wrap" style={{ color: 'var(--fg-dim)' }}>
-            <button
-              onClick={onNavigateHome}
-              className="hover:underline transition-colors"
-              style={{ color: 'var(--fg-muted)' }}
-            >
-              Baiboly
-            </button>
-            <span>/</span>
-            <span>{testamentName}</span>
-            <span>/</span>
-            <span style={{ color: 'var(--fg-muted)' }}>{bookName}</span>
-            <span>/</span>
-            <strong style={{ color: 'var(--gold)' }}>Toko {chapterNumber}</strong>
-          </nav>
-
-          {/* Chapter Header */}
-          <div className="text-center mb-10 select-none">
-            <div
-              className="text-[11px] font-semibold uppercase tracking-[0.2em] mb-2"
-              style={{ color: 'var(--fg-dim)' }}
-            >
-              {testamentName}
-            </div>
-            <h1
-              className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight mb-2 leading-none"
-              style={{
-                fontFamily: 'var(--font-display)',
-                color: 'var(--fg)',
-              }}
-            >
-              {bookName}
-            </h1>
-            <p
-              className="text-xl sm:text-2xl italic font-normal"
-              style={{
-                fontFamily: 'var(--font-display)',
-                color: 'var(--gold)',
-              }}
-            >
-              Toko {chapterNumber}
-            </p>
-
-            {/* Ornamental Divider */}
-            <div className="flex items-center gap-4 my-6 text-xs max-w-xs mx-auto" style={{ color: 'var(--fg-dim)' }}>
-              <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--border)' }} />
-              <span className="tracking-[0.3em]" style={{ color: 'var(--gold-dim)' }}>
-                ✦ ✦ ✦
-              </span>
-              <div className="flex-1 h-[1px]" style={{ backgroundColor: 'var(--border)' }} />
-            </div>
-          </div>
-
-          {/* Verses List */}
-          <div
-            className="space-y-1.5 leading-relaxed selection:bg-amber-500/20"
+    <div className="flex-1 flex flex-col overflow-hidden relative">
+      {/* Bible.com Floating Subheader Bar */}
+      <div
+        className="h-12 border-b px-4 sm:px-8 flex items-center justify-between select-none z-10 flex-shrink-0"
+        style={{
+          backgroundColor: 'var(--surface)',
+          borderColor: 'var(--border)',
+        }}
+      >
+        <div className="flex items-center gap-2">
+          {/* Chapter selector pill button */}
+          <button
+            onClick={onOpenChapterPicker}
+            className="px-3 py-1.5 rounded-lg border text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all hover:border-[var(--gold)]"
             style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: `${fontSize}px`,
+              backgroundColor: 'var(--surface2)',
+              borderColor: 'var(--border)',
+              color: 'var(--fg)',
             }}
           >
-            {verses.map((verse) => {
-              const verseKey = `b${bookNumber}_c${chapterNumber}_v${verse.verseNumber}`;
-              const isHighlighted = !!highlightedVerses[verseKey];
-              const isTarget = targetVerse === verse.verseNumber;
+            <span>
+              {bookName} {chapterNumber}
+            </span>
+            <span className="text-[10px] opacity-60">▾</span>
+          </button>
 
-              return (
-                <div
-                  key={verse.verseNumber}
-                  id={`verse-${verse.verseNumber}`}
-                  onClick={() => onToggleHighlight(verseKey)}
-                  className={`group relative flex items-start gap-3 p-2 rounded-lg transition-all cursor-pointer ${
-                    isHighlighted
-                      ? 'bg-amber-500/15 border-l-2 border-[var(--gold)]'
-                      : isTarget
-                      ? 'bg-amber-500/20 ring-1 ring-[var(--gold)]'
-                      : 'hover:bg-[var(--surface2)]/50'
-                  }`}
-                >
-                  {/* Verse Number */}
-                  <span
-                    className="select-none font-mono text-xs pt-1 w-6 text-right font-medium flex-shrink-0 tabular-nums transition-colors"
+          {/* Bible Version Pill */}
+          <button
+            onClick={onOpenChapterPicker}
+            className="px-2.5 py-1.5 rounded-lg border text-xs font-medium hidden sm:flex items-center gap-1 transition-all opacity-80 hover:opacity-100"
+            style={{
+              backgroundColor: 'var(--surface2)',
+              borderColor: 'var(--border)',
+              color: 'var(--gold)',
+            }}
+            title="Baiboly Protestanta Malagasy 1865"
+          >
+            <span>BPM</span>
+            <span className="text-[10px] opacity-60">▾</span>
+          </button>
+        </div>
+
+        {/* Audio Listen Button (Bible.com headphones icon) */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onStartAudio(0)}
+            className="px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all hover:border-[var(--gold)]"
+            style={{
+              backgroundColor: 'var(--surface2)',
+              borderColor: 'var(--border)',
+              color: 'var(--fg)',
+            }}
+            title="Hihaino feo an’ity toko ity"
+          >
+            <Headphones size={14} style={{ color: 'var(--gold)' }} />
+            <span className="hidden sm:inline">Hihaino</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Scripture Scroll Area with Floating Prev/Next arrows */}
+      <div className="flex-1 relative overflow-hidden flex">
+        {/* Floating Left Arrow (Previous Chapter) */}
+        {canPrev && (
+          <button
+            onClick={onPrevChapter}
+            title="Toko teo aloha"
+            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full border shadow-lg items-center justify-center transition-all hover:scale-105 hover:border-[var(--gold)] opacity-70 hover:opacity-100"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+              color: 'var(--fg)',
+            }}
+          >
+            <ChevronLeft size={22} />
+          </button>
+        )}
+
+        {/* Floating Right Arrow (Next Chapter) */}
+        {canNext && (
+          <button
+            onClick={onNextChapter}
+            title="Toko manaraka"
+            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full border shadow-lg items-center justify-center transition-all hover:scale-105 hover:border-[var(--gold)] opacity-70 hover:opacity-100"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+              color: 'var(--fg)',
+            }}
+          >
+            <ChevronRight size={22} />
+          </button>
+        )}
+
+        {/* Reading Canvas Container */}
+        <main ref={readerScrollRef} className="flex-1 overflow-y-auto min-w-0 scroll-smooth">
+          <div className="max-w-[720px] mx-auto px-5 sm:px-10 py-10 sm:py-16">
+            {/* Header */}
+            <div className="text-center mb-12 select-none">
+              <div
+                className="text-[11px] font-semibold uppercase tracking-[0.2em] mb-2"
+                style={{ color: 'var(--fg-dim)' }}
+              >
+                {testamentName}
+              </div>
+              <h1
+                className="text-4xl sm:text-5xl font-semibold tracking-tight mb-2 leading-none"
+                style={{
+                  fontFamily: fontFamily === 'serif' ? 'var(--font-display)' : 'var(--font-ui)',
+                  color: 'var(--fg)',
+                }}
+              >
+                {bookName}
+              </h1>
+              <p
+                className="text-xl sm:text-2xl italic font-normal"
+                style={{
+                  fontFamily: fontFamily === 'serif' ? 'var(--font-display)' : 'var(--font-ui)',
+                  color: 'var(--gold)',
+                }}
+              >
+                Toko {chapterNumber}
+              </p>
+            </div>
+
+            {/* Verses List (Bible.com clean reading canvas) */}
+            <div
+              className="space-y-2 leading-relaxed selection:bg-amber-500/20"
+              style={{
+                fontFamily:
+                  fontFamily === 'serif' ? 'var(--font-body-serif)' : 'var(--font-body-sans)',
+                fontSize: `${fontSize}px`,
+                lineHeight: '1.9',
+              }}
+            >
+              {verses.map((verse) => {
+                const verseKey = `b${bookNumber}_c${chapterNumber}_v${verse.verseNumber}`;
+                const highlight = highlights[verseKey];
+                const note = notes[verseKey];
+                const isSelected = selectedVerses.some((v) => v.verseNumber === verse.verseNumber);
+                const isTarget = targetVerse === verse.verseNumber;
+
+                const highlightStyle = highlight && colorStyles[highlight.color];
+
+                return (
+                  <div
+                    key={verse.verseNumber}
+                    id={`verse-${verse.verseNumber}`}
+                    onClick={() => handleToggleVerseSelection(verse.verseNumber, verse.text)}
+                    className={`group relative flex items-baseline gap-2.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      isSelected
+                        ? 'ring-2 ring-[var(--gold)] bg-amber-500/10'
+                        : highlight
+                        ? 'border-l-4'
+                        : isTarget
+                        ? 'bg-amber-500/15'
+                        : 'hover:bg-[var(--surface2)]/40'
+                    }`}
                     style={{
-                      color: isHighlighted || isTarget ? 'var(--gold)' : 'var(--gold-dim)',
+                      backgroundColor: highlightStyle && !isSelected ? highlightStyle.bg : undefined,
+                      borderLeftColor: highlightStyle && !isSelected ? highlightStyle.border : undefined,
                     }}
                   >
-                    {verse.verseNumber}
-                  </span>
-
-                  {/* Verse Text */}
-                  <p className="flex-1 leading-relaxed" style={{ color: 'var(--fg)' }}>
-                    {verse.text}
-                  </p>
-
-                  {/* Quick Action Overlay (Copy, Bookmark) */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pl-1 flex-shrink-0 select-none">
-                    <button
-                      onClick={(e) => handleCopyVerse(e, verse.verseNumber, verse.text)}
-                      title="Adikao ity andininy ity"
-                      className="p-1 rounded hover:bg-[var(--surface2)] text-xs transition-colors"
-                      style={{ color: 'var(--fg-dim)' }}
-                    >
-                      {copiedVerse === verse.verseNumber ? (
-                        <Check size={14} className="text-emerald-500" />
-                      ) : (
-                        <Copy size={14} />
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleHighlight(verseKey);
+                    {/* Verse Number (Bible.com superscript style) */}
+                    <span
+                      className="select-none font-mono text-[11px] font-semibold w-5 text-right flex-shrink-0 tabular-nums self-start pt-1"
+                      style={{
+                        color: isSelected || highlight ? 'var(--gold)' : 'var(--fg-dim)',
                       }}
-                      title={isHighlighted ? "Esory ny fanamarihana" : "Mariho ity andininy ity"}
-                      className="p-1 rounded hover:bg-[var(--surface2)] text-xs transition-colors"
-                      style={{ color: isHighlighted ? 'var(--gold)' : 'var(--fg-dim)' }}
                     >
-                      {isHighlighted ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                      {verse.verseNumber}
+                    </span>
 
-          {/* Chapter Bottom Navigation */}
-          <nav
-            className="flex items-center justify-between gap-4 mt-14 pt-8 border-t select-none"
-            style={{ borderColor: 'var(--border)' }}
-          >
-            {prevLabel ? (
+                    {/* Verse Text */}
+                    <div className="flex-1">
+                      <span style={{ color: 'var(--fg)' }}>{verse.text}</span>
+
+                      {/* Note indicator badge */}
+                      {note && (
+                        <span
+                          className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-[10px] bg-amber-500/15 text-amber-500 select-none align-middle"
+                          title={`Fanamarihana: ${note.content}`}
+                        >
+                          <FileText size={10} />
+                          <span className="hidden sm:inline italic max-w-[120px] truncate">
+                            {note.content}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mobile Bottom Chapter Navigation Arrows */}
+            <div
+              className="flex items-center justify-between gap-4 mt-16 pt-8 border-t select-none md:hidden"
+              style={{ borderColor: 'var(--border)' }}
+            >
               <button
                 onClick={onPrevChapter}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all hover:border-[var(--gold)] group"
+                disabled={!canPrev}
+                className="px-4 py-2 rounded-xl border text-xs font-medium flex items-center gap-2 disabled:opacity-30"
                 style={{
                   backgroundColor: 'var(--surface)',
                   borderColor: 'var(--border)',
                   color: 'var(--fg)',
                 }}
               >
-                <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-                <span>{prevLabel}</span>
+                <ChevronLeft size={16} />
+                <span>Teo aloha</span>
               </button>
-            ) : (
-              <div />
-            )}
 
-            {nextLabel ? (
               <button
                 onClick={onNextChapter}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all hover:border-[var(--gold)] group"
+                disabled={!canNext}
+                className="px-4 py-2 rounded-xl border text-xs font-medium flex items-center gap-2 disabled:opacity-30"
                 style={{
                   backgroundColor: 'var(--surface)',
                   borderColor: 'var(--border)',
                   color: 'var(--fg)',
                 }}
               >
-                <span>{nextLabel}</span>
-                <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                <span>Manaraka</span>
+                <ChevronRight size={16} />
               </button>
-            ) : (
-              <div />
-            )}
-          </nav>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* Bible.com Floating Verse Action Dock */}
+      <FloatingVerseDock
+        bookName={bookName}
+        chapterNumber={chapterNumber}
+        selectedVerses={selectedVerses}
+        currentHighlight={currentHighlight}
+        hasNote={selectedVerses.some((v) => !!notes[`b${bookNumber}_c${chapterNumber}_v${v.verseNumber}`])}
+        isBookmarked={isBookmarked}
+        onClearSelection={handleClearSelection}
+        onSetHighlight={handleApplyHighlight}
+        onOpenNote={handleOpenNoteModal}
+        onToggleBookmark={onToggleBookmark}
+        onPlayAudio={() => {
+          if (selectedVerses.length > 0) {
+            onStartAudio(selectedVerses[0].verseNumber - 1);
+          }
+        }}
+        onOpenImageCard={() => setShareModalOpen(true)}
+        onCopy={handleCopySelected}
+        onShare={handleShareSelected}
+      />
+
+      {/* Note Editor Modal */}
+      {noteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs select-none"
+          onClick={() => setNoteModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border shadow-2xl p-5"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+              color: 'var(--fg)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold" style={{ fontFamily: 'var(--font-display)' }}>
+                Fanamarihana d’Etude
+              </h3>
+              <button
+                onClick={() => setNoteModalOpen(false)}
+                className="text-xs opacity-70 hover:opacity-100"
+              >
+                Aoka ihany
+              </button>
+            </div>
+
+            <textarea
+              value={noteContent}
+              onChange={(e) => setNoteContent(e.target.value)}
+              placeholder="Soraty eto ny hevitrao, fampianarana na vavaka..."
+              rows={4}
+              className="w-full p-3 rounded-xl border text-xs sm:text-sm outline-none resize-none mb-3"
+              style={{
+                backgroundColor: 'var(--surface2)',
+                borderColor: 'var(--border)',
+                color: 'var(--fg)',
+              }}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleSaveNoteSubmit}
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold"
+                style={{
+                  backgroundColor: 'var(--gold)',
+                  color: 'var(--bg)',
+                }}
+              >
+                Tehirizo
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* Verse Share Modal (Image Card Generator) */}
+      {shareModalOpen && selectedVerses.length > 0 && (
+        <VerseShareModal
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          bookName={bookName}
+          chapterNumber={chapterNumber}
+          verseNumber={selectedVerses[0].verseNumber}
+          verseText={selectedVerses.map((v) => v.text).join(' ')}
+        />
+      )}
     </div>
   );
 };
