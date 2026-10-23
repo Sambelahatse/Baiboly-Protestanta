@@ -1,0 +1,8 @@
+{
+  "name": "Baiboly Malagasy",
+  "description": "Baiboly Protestanta amin'ny teny Malagasy (1865) miaraka amin'ny fitetezana boky, toko, ary fikarohana haingana.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

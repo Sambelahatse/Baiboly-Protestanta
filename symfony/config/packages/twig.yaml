@@ -1,9 +1,0 @@
-twig:
-    file_name_pattern: '*.twig'
-    globals:
-        app_name: 'Baiboly Protestanta'
-        app_version: '1865'
-
-when@test:
-    twig:
-        strict_variables: true

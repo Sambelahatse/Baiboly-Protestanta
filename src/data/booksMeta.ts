@@ -1,0 +1,85 @@
+import { BookMeta } from '../types/bible';
+
+export const BOOKS_META: BookMeta[] = [
+  { book_number: 1, name: "Genesisy", file: "data/json/01_Genesisy.json", chapters: 50 },
+  { book_number: 2, name: "Eksodosy", file: "data/json/02_Eksodosy.json", chapters: 40 },
+  { book_number: 3, name: "Levitikosy", file: "data/json/03_Levitikosy.json", chapters: 27 },
+  { book_number: 4, name: "Nomery", file: "data/json/04_Nomery.json", chapters: 36 },
+  { book_number: 5, name: "Deoteronomia", file: "data/json/05_Deoteronomia.json", chapters: 34 },
+  { book_number: 6, name: "Josoa", file: "data/json/06_Josoa.json", chapters: 24 },
+  { book_number: 7, name: "Mpitsara", file: "data/json/07_Mpitsara.json", chapters: 21 },
+  { book_number: 8, name: "Rota", file: "data/json/08_Rota.json", chapters: 4 },
+  { book_number: 9, name: "1 Samoela", file: "data/json/09_1_Samoela.json", chapters: 31 },
+  { book_number: 10, name: "2 Samoela", file: "data/json/10_2_Samoela.json", chapters: 24 },
+  { book_number: 11, name: "1 Mpanjaka", file: "data/json/11_1_Mpanjaka.json", chapters: 22 },
+  { book_number: 12, name: "2 Mpanjaka", file: "data/json/12_2_Mpanjaka.json", chapters: 25 },
+  { book_number: 13, name: "1 Tantara", file: "data/json/13_1_Tantara.json", chapters: 29 },
+  { book_number: 14, name: "2 Tantara", file: "data/json/14_2_Tantara.json", chapters: 36 },
+  { book_number: 15, name: "Ezra", file: "data/json/15_Ezra.json", chapters: 10 },
+  { book_number: 16, name: "Nehemia", file: "data/json/16_Nehemia.json", chapters: 13 },
+  { book_number: 17, name: "Estera", file: "data/json/17_Estera.json", chapters: 10 },
+  { book_number: 18, name: "Joba", file: "data/json/18_Joba.json", chapters: 42 },
+  { book_number: 19, name: "Salamo", file: "data/json/19_Salamo.json", chapters: 150 },
+  { book_number: 20, name: "Ohabolana", file: "data/json/20_Ohabolana.json", chapters: 31 },
+  { book_number: 21, name: "Mpitoriteny", file: "data/json/21_Mpitoriteny.json", chapters: 12 },
+  { book_number: 22, name: "Tononkiran'i Solomona", file: "data/json/22_Tononkiran'i_Solomona.json", chapters: 8 },
+  { book_number: 23, name: "Isaia", file: "data/json/23_Isaia.json", chapters: 66 },
+  { book_number: 24, name: "Jeremia", file: "data/json/24_Jeremia.json", chapters: 52 },
+  { book_number: 25, name: "Fitomaniana", file: "data/json/25_Fitomaniana.json", chapters: 5 },
+  { book_number: 26, name: "Ezekiela", file: "data/json/26_Ezekiela.json", chapters: 48 },
+  { book_number: 27, name: "Daniela", file: "data/json/27_Daniela.json", chapters: 12 },
+  { book_number: 28, name: "Hosea", file: "data/json/28_Hosea.json", chapters: 14 },
+  { book_number: 29, name: "Joela", file: "data/json/29_Joela.json", chapters: 4 },
+  { book_number: 30, name: "Amosa", file: "data/json/30_Amosa.json", chapters: 9 },
+  { book_number: 31, name: "Obadia", file: "data/json/31_Obadia.json", chapters: 1 },
+  { book_number: 32, name: "Jona", file: "data/json/32_Jona.json", chapters: 4 },
+  { book_number: 33, name: "Mika", file: "data/json/33_Mika.json", chapters: 7 },
+  { book_number: 34, name: "Nahoma", file: "data/json/34_Nahoma.json", chapters: 3 },
+  { book_number: 35, name: "Habakoka", file: "data/json/35_Habakoka.json", chapters: 3 },
+  { book_number: 36, name: "Zefania", file: "data/json/36_Zefania.json", chapters: 3 },
+  { book_number: 37, name: "Hagay", file: "data/json/37_Hagay.json", chapters: 2 },
+  { book_number: 38, name: "Zakaria", file: "data/json/38_Zakaria.json", chapters: 14 },
+  { book_number: 39, name: "Malakia", file: "data/json/39_Malakia.json", chapters: 3 },
+  { book_number: 40, name: "Matio", file: "data/json/40_Matio.json", chapters: 28 },
+  { book_number: 41, name: "Marka", file: "data/json/41_Marka.json", chapters: 16 },
+  { book_number: 42, name: "Lioka", file: "data/json/42_Lioka.json", chapters: 24 },
+  { book_number: 43, name: "Jaona", file: "data/json/43_Jaona.json", chapters: 21 },
+  { book_number: 44, name: "Asan'ny Apostoly", file: "data/json/44_Asan'ny_Apostoly.json", chapters: 28 },
+  { book_number: 45, name: "Romana", file: "data/json/45_Romana.json", chapters: 16 },
+  { book_number: 46, name: "1 Korintiana", file: "data/json/46_1_Korintiana.json", chapters: 16 },
+  { book_number: 47, name: "2 Korintiana", file: "data/json/47_2_Korintiana.json", chapters: 13 },
+  { book_number: 48, name: "Galatiana", file: "data/json/48_Galatiana.json", chapters: 6 },
+  { book_number: 49, name: "Efesiana", file: "data/json/49_Efesiana.json", chapters: 6 },
+  { book_number: 50, name: "Filipiana", file: "data/json/50_Filipiana.json", chapters: 4 },
+  { book_number: 51, name: "Kolosiana", file: "data/json/51_Kolosiana.json", chapters: 4 },
+  { book_number: 52, name: "1 Tesaloniana", file: "data/json/52_1_Tesaloniana.json", chapters: 5 },
+  { book_number: 53, name: "2 Tesaloniana", file: "data/json/53_2_Tesaloniana.json", chapters: 3 },
+  { book_number: 54, name: "1 Timoty", file: "data/json/54_1_Timoty.json", chapters: 6 },
+  { book_number: 55, name: "2 Timoty", file: "data/json/55_2_Timoty.json", chapters: 4 },
+  { book_number: 56, name: "Titosy", file: "data/json/56_Titosy.json", chapters: 3 },
+  { book_number: 57, name: "Filemona", file: "data/json/57_Filemona.json", chapters: 1 },
+  { book_number: 58, name: "Hebreo", file: "data/json/58_Hebreo.json", chapters: 13 },
+  { book_number: 59, name: "Jakoba", file: "data/json/59_Jakoba.json", chapters: 5 },
+  { book_number: 60, name: "1 Petera", file: "data/json/60_1_Petera.json", chapters: 5 },
+  { book_number: 61, name: "2 Petera", file: "data/json/61_2_Petera.json", chapters: 3 },
+  { book_number: 62, name: "1 Jaona", file: "data/json/62_1_Jaona.json", chapters: 5 },
+  { book_number: 63, name: "2 Jaona", file: "data/json/63_2_Jaona.json", chapters: 1 },
+  { book_number: 64, name: "3 Jaona", file: "data/json/64_3_Jaona.json", chapters: 1 },
+  { book_number: 65, name: "Joda", file: "data/json/65_Joda.json", chapters: 1 },
+  { book_number: 66, name: "Apokalypsy", file: "data/json/66_Apokalypsy.json", chapters: 22 }
+];
+
+export const TOTAL_BOOKS = BOOKS_META.length;
+export const TOTAL_CHAPTERS = BOOKS_META.reduce((acc, b) => acc + b.chapters, 0);
+export const TOTAL_VERSES = 31105;
+
+export const OT_BOOKS = BOOKS_META.filter(b => b.book_number <= 39);
+export const NT_BOOKS = BOOKS_META.filter(b => b.book_number > 39);
+
+export function getBookByNumber(bookNumber: number): BookMeta | undefined {
+  return BOOKS_META.find(b => b.book_number === bookNumber);
+}
+
+export function isOldTestament(bookNumber: number): boolean {
+  return bookNumber <= 39;
+}
